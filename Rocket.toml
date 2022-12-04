@@ -1,0 +1,3 @@
+
+[default.databases.rocket_test]
+url = "mysql://root:root@localhost:3306/rocket_test"
