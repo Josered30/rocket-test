@@ -1,12 +1,12 @@
-use bcrypt::{hash, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::NaiveDateTime;
-use sea_orm::{ActiveModelTrait, DbConn, EntityTrait, Set};
-use serde::{Deserialize, Serialize};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DbConn, EntityTrait, QueryFilter, Set};
 
-use crate::errors::{ApiError, StoreError};
+use crate::cores::errors::{ApiError, StoreError};
 
-use crate::models::user;
-use crate::models::user::Entity as User;
+use crate::domain::models::user;
+use crate::domain::models::user::Entity as User;
+use crate::infrastructure::auth::create_token;
 
 pub struct UserInfo {
     pub id: i32,
@@ -34,7 +34,7 @@ impl UserInfo {
 pub struct UserService;
 
 impl UserService {
-    pub fn hash_password(plain: String) -> Result<String, StoreError> {
+    pub fn hash_password(plain: &str) -> Result<String, StoreError> {
         Ok(hash(plain, DEFAULT_COST)?)
     }
 
@@ -43,7 +43,7 @@ impl UserService {
         email: String,
         password: String,
     ) -> Result<i32, ApiError> {
-        let password = UserService::hash_password(password)?;
+        let password = UserService::hash_password(&password)?;
         let result = user::ActiveModel {
             email: Set(email),
             password: Set(password),
@@ -53,6 +53,32 @@ impl UserService {
         .await?;
 
         return Ok(result.id.unwrap());
+    }
+
+    pub async fn sign_in(
+        db: &DbConn,
+        email: String,
+        password: String,
+    ) -> Result<(i32, String), ApiError> {
+        let option_user = User::find()
+            .filter(user::Column::Email.eq(email))
+            .one(db)
+            .await?;
+
+        let Some(user) = option_user else {
+            return Err(ApiError::new(400, "User not found".to_string()));
+        };
+
+        let Ok(valid) = verify(password, &user.password) else {
+            return Err(ApiError::new(401, "Password validation error".to_string()));
+        };
+
+        if !valid {
+            return Err(ApiError::new(401, "Password validation error".to_string()));
+        }
+
+        let jwt = create_token(user.email.as_str(), user.id)?;
+        return Ok((user.id, jwt));
     }
 
     pub async fn list_users(db: &DbConn) -> Result<Vec<UserInfo>, ApiError> {

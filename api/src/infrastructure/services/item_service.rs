@@ -1,11 +1,9 @@
-use std::result;
-
 use chrono::NaiveDateTime;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DbConn, EntityTrait, QueryFilter, Set};
 
-use crate::errors::ApiError;
-use crate::models::item;
-use crate::models::item::Entity as Item;
+use crate::cores::errors::ApiError;
+use crate::domain::models::item;
+use crate::domain::models::item::Entity as Item;
 
 pub struct ItemInfo {
     pub id: i32,

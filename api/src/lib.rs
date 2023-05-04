@@ -1,14 +1,14 @@
+use api::routes;
+use cores::database;
 use dotenv::dotenv;
 
 #[macro_use]
 extern crate rocket;
 
-mod auth;
-mod database;
-mod errors;
-mod models;
-mod routes;
-mod services;
+mod api;
+mod cores;
+mod domain;
+mod infrastructure;
 
 #[rocket::main]
 async fn app() -> Result<(), rocket::Error> {

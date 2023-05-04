@@ -1,18 +1,18 @@
-use crate::errors::ApiError;
+use crate::cores::errors::ApiError;
+
 use chrono::{Duration, Local};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub email: String,
-    pub id: Uuid,
+    pub id: i32,
     pub exp: usize,
 }
 
 impl Claims {
-    fn new(email: &str, id: &Uuid) -> Self {
+    fn new(email: &str, id: i32) -> Self {
         Claims {
             email: email.to_string(),
             id: id.clone(),
@@ -21,7 +21,7 @@ impl Claims {
     }
 }
 
-pub fn create_token(email: &str, id: &Uuid) -> Result<String, ApiError> {
+pub fn create_token(email: &str, id: i32) -> Result<String, ApiError> {
     let claims = Claims::new(email, id);
     encode(
         &Header::default(),
@@ -40,7 +40,6 @@ pub fn decode_token(token: &str) -> Result<Claims, ApiError> {
     .map(|data| data.claims)
     .map_err(|error| ApiError::new(401, format!("Token error: {}", error)))
 }
-
 
 fn get_secret() -> String {
     dotenv::var("JWT_SECRET").unwrap()

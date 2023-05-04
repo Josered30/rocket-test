@@ -27,7 +27,7 @@ impl MigrationTrait for Migration {
                             .extra("DEFAULT CURRENT_TIMESTAMP".to_string()),
                     )
                     .col(
-                        ColumnDef::new(Users::UpdateAt)
+                        ColumnDef::new(Users::UpdatedAt)
                             .date_time()
                             .extra("ON UPDATE CURRENT_TIMESTAMP".to_string()),
                     )
@@ -51,5 +51,5 @@ enum Users {
     Email,
     Password,
     CreatedAt,
-    UpdateAt,
+    UpdatedAt,
 }

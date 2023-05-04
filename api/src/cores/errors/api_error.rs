@@ -6,7 +6,7 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use crate::errors::StoreError;
+use crate::cores::errors::StoreError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiError {
