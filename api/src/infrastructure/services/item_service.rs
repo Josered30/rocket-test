@@ -32,13 +32,14 @@ pub struct ItemService;
 
 impl ItemService {
     pub async fn create_item(db: &DbConn, name: String, user_id: i32) -> Result<i32, ApiError> {
-        let result = item::ActiveModel {
+        let new_item = item::ActiveModel {
             name: Set(name),
+            user_id: Set(user_id),
             ..Default::default()
-        }
-        .save(db)
-        .await?;
-        return Ok(result.id.unwrap());
+        };
+
+        let result = Item::insert(new_item).exec(db).await?;
+        return Ok(result.last_insert_id);
     }
 
     pub async fn get_items(db: &DbConn, user_id: i32) -> Result<Vec<ItemInfo>, ApiError> {

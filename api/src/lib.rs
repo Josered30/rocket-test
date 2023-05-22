@@ -14,7 +14,7 @@ mod infrastructure;
 async fn app() -> Result<(), rocket::Error> {
     dotenv().ok();
 
-    let app = rocket::build()
+    rocket::build()
         .attach(database::database_stage())
         .attach(routes::user_stage())
         .launch()

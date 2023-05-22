@@ -1,6 +1,9 @@
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::NaiveDateTime;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DbConn, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DbConn, EntityTrait, IntoActiveModel, QueryFilter, Set,
+    TryIntoModel,
+};
 
 use crate::cores::errors::{ApiError, StoreError};
 
@@ -44,15 +47,14 @@ impl UserService {
         password: String,
     ) -> Result<i32, ApiError> {
         let password = UserService::hash_password(&password)?;
-        let result = user::ActiveModel {
+        let new_user = user::ActiveModel {
             email: Set(email),
             password: Set(password),
             ..Default::default()
-        }
-        .save(db)
-        .await?;
+        };
 
-        return Ok(result.id.unwrap());
+        let result = User::insert(new_user).exec(db).await?;
+        return Ok(result.last_insert_id);
     }
 
     pub async fn sign_in(
